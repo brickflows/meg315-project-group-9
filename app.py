@@ -339,35 +339,79 @@ class ADHTCApp(tk.Tk):
         sb.pack(side='right',fill='y'); cv.pack(side='left',fill='both',expand=True)
         cv.bind_all('<MouseWheel>',lambda e:cv.yview_scroll(-1*(e.delta//120),'units'))
         self.entries = {}
-        def sec(parent,title):
-            lf = tk.LabelFrame(parent,text=title,bg=CARD_BG,fg=ACCENT_CYAN,font=('Segoe UI',9,'bold'),padx=10,pady=5)
-            lf.pack(fill='x',padx=10,pady=(6,3)); return lf
-        def ent(parent,key,label,default):
-            f = tk.Frame(parent,bg=CARD_BG); f.pack(fill='x',pady=1)
-            tk.Label(f,text=label,bg=CARD_BG,fg='#94a3b8',font=('Segoe UI',8),anchor='w').pack(fill='x')
-            e = tk.Entry(f,bg='#1a1a2e',fg=TEXT_COL,insertbackground=TEXT_COL,font=('Consolas',9),
-                         relief='flat',bd=0,highlightthickness=1,highlightcolor=ACCENT_CYAN,highlightbackground='#334155')
-            e.insert(0,str(default)); e.pack(fill='x',ipady=3); self.entries[key] = e
-        s = sec(sf,'Gas Power Cycle (Brayton)')
+
+        def sec(parent, title, collapsible=False, collapsed=False):
+            """Create a section. If collapsible, adds a clickable header to toggle."""
+            outer = tk.Frame(parent, bg=CARD_BG)
+            outer.pack(fill='x', padx=10, pady=(6, 3))
+            if collapsible:
+                arrow_var = tk.StringVar(value='+ ' if collapsed else '- ')
+                header = tk.Frame(outer, bg='#1e1e3a', cursor='hand2')
+                header.pack(fill='x')
+                arrow_lbl = tk.Label(header, textvariable=arrow_var, bg='#1e1e3a',
+                                     fg=ACCENT_CYAN, font=('Consolas', 10, 'bold'))
+                arrow_lbl.pack(side='left', padx=(5, 0))
+                tk.Label(header, text=title, bg='#1e1e3a', fg=ACCENT_CYAN,
+                         font=('Segoe UI', 9, 'bold')).pack(side='left', padx=5, pady=3)
+                tk.Label(header, text='(defaults pre-filled)', bg='#1e1e3a',
+                         fg='#475569', font=('Segoe UI', 8)).pack(side='right', padx=8)
+                content = tk.Frame(outer, bg=CARD_BG, padx=10, pady=5)
+                if not collapsed:
+                    content.pack(fill='x')
+                def toggle(e=None):
+                    if content.winfo_manager():
+                        content.pack_forget()
+                        arrow_var.set('+ ')
+                    else:
+                        content.pack(fill='x')
+                        arrow_var.set('- ')
+                header.bind('<Button-1>', toggle)
+                for child in header.winfo_children():
+                    child.bind('<Button-1>', toggle)
+                return content
+            else:
+                lf = tk.LabelFrame(outer, text=title, bg=CARD_BG, fg=ACCENT_CYAN,
+                                   font=('Segoe UI', 9, 'bold'), padx=10, pady=5)
+                lf.pack(fill='x')
+                return lf
+
+        def ent(parent, key, label, default):
+            f = tk.Frame(parent, bg=CARD_BG); f.pack(fill='x', pady=1)
+            tk.Label(f, text=label, bg=CARD_BG, fg='#94a3b8', font=('Segoe UI', 8), anchor='w').pack(fill='x')
+            e = tk.Entry(f, bg='#1a1a2e', fg=TEXT_COL, insertbackground=TEXT_COL, font=('Consolas', 9),
+                         relief='flat', bd=0, highlightthickness=1, highlightcolor=ACCENT_CYAN,
+                         highlightbackground='#334155')
+            e.insert(0, str(default)); e.pack(fill='x', ipady=3); self.entries[key] = e
+
+        # ── Core parameters (always visible) ──
+        s = sec(sf, 'Gas Power Cycle (Brayton)')
         ent(s,'T1','Ambient Temp T1 (K)',298); ent(s,'P1','Ambient Press P1 (kPa)',101.325)
         ent(s,'rp','Pressure Ratio rp',10); ent(s,'TIT','Turbine Inlet Temp TIT (K)',1400)
         ent(s,'eta_c','Compressor Eff eta_c',0.86); ent(s,'eta_t','Turbine Eff eta_t',0.89)
         ent(s,'eta_cc','Combustion Eff eta_cc',0.98)
         ent(s,'LHV','Biogas LHV (kJ/kg)',20000); ent(s,'m_air','Air Mass Flow (kg/s)',50)
-        s = sec(sf,'HTC Steam Cycle (Rankine)')
+
+        s = sec(sf, 'HTC Steam Cycle (Rankine)')
         ent(s,'P_boiler','Boiler Pressure (kPa)',4000); ent(s,'T_steam','Steam Temp (K)',673)
         ent(s,'P_cond','Condenser Press (kPa)',10)
         ent(s,'eta_st','ST Eff eta_st',0.85); ent(s,'eta_fp','Pump Eff eta_fp',0.80)
-        s = sec(sf,'HRSG Coupling')
+
+        # ── Advanced parameters (collapsed by default, defaults pre-filled) ──
+        s = sec(sf, 'HRSG Coupling', collapsible=True, collapsed=True)
         ent(s,'T_stack','Stack Temp (K)',420); ent(s,'eta_hrsg','HRSG Effectiveness',0.85)
         ent(s,'pinch_dT','Pinch Delta-T (K)',15)
-        s = sec(sf,'Biomass / AD Parameters')
+
+        s = sec(sf, 'Biomass / AD Parameters', collapsible=True, collapsed=True)
         ent(s,'m_biomass','Biomass Feed (kg/s)',5); ent(s,'moisture_split','Moisture-Rich Frac',0.6)
         ent(s,'ad_yield','AD Yield (m3/kg)',0.4); ent(s,'htc_temp','HTC Reactor Temp (K)',523)
-        bf = tk.Frame(sf,bg=CARD_BG); bf.pack(fill='x',padx=10,pady=10)
-        tk.Button(bf,text='Analyse',font=('Segoe UI',12,'bold'),bg='#2563eb',fg='white',
-                  activebackground='#3b82f6',activeforeground='white',relief='flat',cursor='hand2',
-                  bd=0,padx=20,pady=10,command=self._run).pack(fill='x')
+
+        # ── Analyse button ──
+        bf = tk.Frame(sf, bg=CARD_BG); bf.pack(fill='x', padx=10, pady=10)
+        tk.Button(bf, text='Analyse', font=('Segoe UI', 12, 'bold'), bg='#2563eb', fg='white',
+                  activebackground='#3b82f6', activeforeground='white', relief='flat', cursor='hand2',
+                  bd=0, padx=20, pady=10, command=self._run).pack(fill='x')
+        tk.Label(bf, text='All fields have defaults - just click Analyse!',
+                 bg=CARD_BG, fg='#475569', font=('Segoe UI', 8)).pack(pady=(4, 0))
 
     def _get_p(self):
         p = {}
