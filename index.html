@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AD-HTC Fuel-Enhanced Power Gas Cycle Analyser</title>
+    <meta name="description"
+        content="Interactive AD-HTC Fuel-Enhanced Power Gas Cycle design and thermodynamic analysis with H-S and T-Ḣ diagrams. Energhx Research Group, University of Lagos.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- ═══════════════════ HEADER ═══════════════════ -->
+    <header class="app-header">
+        <div class="header-glow"></div>
+        <div class="header-content">
+            <div class="header-badge">MEG 315 — Energhx Research Group</div>
+            <h1>AD-HTC <span class="accent">Fuel-Enhanced</span> Power Gas Cycle</h1>
+            <p class="subtitle">Anaerobic Digestion + Hydrothermal Carbonization — Interactive Design &amp;
+                Thermodynamic Analysis</p>
+        </div>
+    </header>
+
+    <!-- ═══════════════════ MAIN LAYOUT ═══════════════════ -->
+    <main class="main-grid">
+
+        <!-- ── SCHEMATIC PANEL ── -->
+        <section class="panel schematic-panel" id="schematic-panel">
+            <div class="panel-header">
+                <h2>Cycle Schematic</h2>
+                <span class="panel-tag">Interactive</span>
+            </div>
+            <div class="schematic-wrapper" id="schematic-wrapper">
+                <svg id="cycle-svg" viewBox="0 0 1160 780" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="bioGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#22c55e" />
+                            <stop offset="100%" stop-color="#16a34a" />
+                        </linearGradient>
+                        <linearGradient id="htcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#f97316" />
+                            <stop offset="100%" stop-color="#ea580c" />
+                        </linearGradient>
+                        <linearGradient id="compGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#3b82f6" />
+                            <stop offset="100%" stop-color="#2563eb" />
+                        </linearGradient>
+                        <linearGradient id="turbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ef4444" />
+                            <stop offset="100%" stop-color="#dc2626" />
+                        </linearGradient>
+                        <linearGradient id="combGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#f59e0b" />
+                            <stop offset="100%" stop-color="#d97706" />
+                        </linearGradient>
+                        <linearGradient id="steamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#8b5cf6" />
+                            <stop offset="100%" stop-color="#7c3aed" />
+                        </linearGradient>
+                        <linearGradient id="boilGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#e11d48" />
+                            <stop offset="100%" stop-color="#be123c" />
+                        </linearGradient>
+                        <linearGradient id="adGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#06b6d4" />
+                            <stop offset="100%" stop-color="#0891b2" />
+                        </linearGradient>
+                        <linearGradient id="collGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#14b8a6" />
+                            <stop offset="100%" stop-color="#0d9488" />
+                        </linearGradient>
+                        <linearGradient id="homoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#a78bfa" />
+                            <stop offset="100%" stop-color="#8b5cf6" />
+                        </linearGradient>
+                        <!-- Arrow markers -->
+                        <marker id="arrowBlack" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#94a3b8" />
+                        </marker>
+                        <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#4ade80" />
+                        </marker>
+                        <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#fb923c" />
+                        </marker>
+                        <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#c084fc" />
+                        </marker>
+                        <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#60a5fa" />
+                        </marker>
+                        <marker id="arrowCyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#22d3ee" />
+                        </marker>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="2.5" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!--  SECTION LABEL: GAS POWER CYCLE (BOTTOM)      -->
+                    <!-- ══════════════════════════════════════════════ -->
+                    <rect x="40" y="590" width="1080" height="170" rx="12" fill="rgba(59,130,246,0.04)"
+                        stroke="rgba(59,130,246,0.15)" stroke-width="1" stroke-dasharray="6,3" />
+                    <text x="580" y="750" text-anchor="middle" class="svg-section-label" fill="#3b82f6">AD-HTC
+                        Fuel-Enhanced Gas Power Cycle (Brayton)</text>
+
+                    <!-- Shaft line (dashed) connecting Compressor and Turbine -->
+                    <line x1="370" y1="660" x2="830" y2="660" stroke="#64748b" stroke-width="2.5"
+                        stroke-dasharray="10,5" />
+
+                    <!-- Air Inlet label -->
+                    <text x="280" y="728" class="svg-label-med" fill="#94a3b8">Air</text>
+                    <line x1="300" y1="720" x2="300" y2="690" stroke="#94a3b8" stroke-width="2"
+                        marker-end="url(#arrowBlack)" />
+
+                    <!-- 1. COMPRESSOR -->
+                    <g class="component" data-component="compressor" data-tooltip="Compressor — Compresses inlet air">
+                        <rect x="255" y="630" width="120" height="55" rx="8" fill="url(#compGrad)" class="comp-body" />
+                        <text x="315" y="657" class="svg-label" fill="white">Compressor</text>
+                        <text x="315" y="673" class="svg-label-xs" fill="#bfdbfe">C</text>
+                        <circle cx="255" cy="658" r="5" class="state-dot" fill="#38bdf8" />
+                        <text x="243" y="650" class="state-num" fill="#38bdf8">①</text>
+                        <circle cx="375" cy="658" r="5" class="state-dot" fill="#38bdf8" />
+                        <text x="382" y="650" class="state-num" fill="#38bdf8">②</text>
+                    </g>
+
+                    <!-- Flow: Compressor → Combustion Chamber (upward then right) -->
+                    <polyline points="375,658 420,658 420,520 550,520" stroke="#60a5fa" stroke-width="2.5" fill="none"
+                        marker-end="url(#arrowBlue)" class="flow-line" />
+
+                    <!-- 2. BIOGAS COMBUSTION CHAMBER -->
+                    <g class="component" data-component="combustion"
+                        data-tooltip="Biogas Combustion Chamber — Burns biogas with compressed air">
+                        <rect x="550" y="490" width="160" height="60" rx="8" fill="url(#combGrad)" class="comp-body" />
+                        <text x="630" y="517" class="svg-label" fill="white">Biogas Combustion</text>
+                        <text x="630" y="535" class="svg-label-xs" fill="#fef3c7">Chamber</text>
+                        <circle cx="550" cy="520" r="5" class="state-dot" fill="#f59e0b" />
+                        <text x="536" y="513" class="state-num" fill="#f59e0b">③</text>
+                        <circle cx="710" cy="520" r="5" class="state-dot" fill="#f59e0b" />
+                        <text x="718" y="513" class="state-num" fill="#f59e0b">④</text>
+                    </g>
+
+                    <!-- Flow: Combustion Chamber → Turbine (right then down) -->
+                    <polyline points="710,520 830,520 830,630" stroke="#fb923c" stroke-width="2.5" fill="none"
+                        marker-end="url(#arrowOrange)" class="flow-line" />
+
+                    <!-- 3. TURBINE -->
+                    <g class="component" data-component="turbine"
+                        data-tooltip="Gas Turbine — Expands hot gas, produces shaft work">
+                        <rect x="780" y="630" width="120" height="55" rx="8" fill="url(#turbGrad)" class="comp-body" />
+                        <text x="840" y="657" class="svg-label" fill="white">Turbine</text>
+                        <text x="840" y="673" class="svg-label-xs" fill="#fecaca">GT</text>
+                        <circle cx="900" cy="658" r="5" class="state-dot" fill="#ef4444" />
+                        <text x="910" y="650" class="state-num" fill="#ef4444">⑤</text>
+                    </g>
+
+                    <!-- Exhaust Gases label -->
+                    <line x1="900" y1="658" x2="1050" y2="658" stroke="#94a3b8" stroke-width="2"
+                        marker-end="url(#arrowBlack)" />
+                    <text x="1030" y="680" class="svg-label-med" fill="#94a3b8">Exhaust</text>
+                    <text x="1030" y="696" class="svg-label-med" fill="#94a3b8">Gases</text>
+
+                    <!-- Power output arrow -->
+                    <line x1="840" y1="612" x2="840" y2="610" stroke="#fbbf24" stroke-width="0" />
+                    <text x="510" y="670" class="svg-label-xs" fill="#fbbf24">← Shaft →</text>
+
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!--  SECTION: HTC STEAM CYCLE (MIDDLE)            -->
+                    <!-- ══════════════════════════════════════════════ -->
+                    <rect x="140" y="250" width="430" height="200" rx="12" fill="rgba(139,92,246,0.04)"
+                        stroke="rgba(139,92,246,0.12)" stroke-width="1" stroke-dasharray="6,3" />
+                    <text x="355" y="290" text-anchor="middle" class="svg-section-label" fill="#a78bfa">HTC Steam
+                        Cycle</text>
+
+                    <!-- Steam turbine symbol (triangle) -->
+                    <polygon points="310,320 350,350 310,380" fill="url(#steamGrad)" stroke="#a78bfa" stroke-width="1.5"
+                        class="comp-body" />
+                    <text x="326" y="355" class="svg-label-xs" fill="white">ST</text>
+
+                    <!-- 4. HTC REACTOR -->
+                    <g class="component" data-component="reactor"
+                        data-tooltip="HTC Reactor — Hydrothermal Carbonization of moisture-lean biomass">
+                        <rect x="360" y="340" width="120" height="55" rx="8" fill="url(#htcGrad)" class="comp-body" />
+                        <text x="420" y="366" class="svg-label" fill="white">Reactor</text>
+                        <text x="420" y="381" class="svg-label-xs" fill="#fed7aa">HTC</text>
+                        <circle cx="360" cy="368" r="5" class="state-dot" fill="#f97316" />
+                        <text x="348" y="360" class="state-num" fill="#f97316">ⓐ</text>
+                    </g>
+
+                    <!-- Flow: Reactor → Steam Turbine (left) -->
+                    <line x1="360" y1="355" x2="352" y2="355" stroke="#c084fc" stroke-width="2"
+                        marker-end="url(#arrowPurple)" />
+
+                    <!-- 5. BOILER -->
+                    <g class="component" data-component="boiler"
+                        data-tooltip="Boiler — Generates steam from HTC process heat">
+                        <rect x="360" y="300" width="120" height="40" rx="8" fill="url(#boilGrad)" class="comp-body" />
+                        <text x="420" y="325" class="svg-label" fill="white">Boiler</text>
+                        <circle cx="360" cy="320" r="5" class="state-dot" fill="#e11d48" />
+                        <text x="348" y="312" class="state-num" fill="#e11d48">ⓑ</text>
+                        <circle cx="480" cy="320" r="5" class="state-dot" fill="#e11d48" />
+                        <text x="488" y="312" class="state-num" fill="#e11d48">ⓒ</text>
+                    </g>
+
+                    <!-- Flow: Steam Turbine → Boiler (up) then Boiler loop back -->
+                    <line x1="330" y1="320" x2="358" y2="320" stroke="#c084fc" stroke-width="2"
+                        marker-end="url(#arrowPurple)" />
+                    <!-- Boiler to Reactor internal connection -->
+                    <line x1="420" y1="340" x2="420" y2="340" stroke="#c084fc" stroke-width="1.5"
+                        stroke-dasharray="3,2" />
+
+                    <!-- Steam cycle loop : ST bottom → around back to Reactor bottom -->
+                    <polyline points="310,380 310,420 200,420 200,340 310,340 310,320" stroke="#c084fc"
+                        stroke-width="1.5" fill="none" stroke-dasharray="5,3" opacity="0.4" />
+                    <text x="210" y="390" class="svg-label-xs" fill="#c084fc" opacity="0.6">Condensate</text>
+                    <text x="210" y="404" class="svg-label-xs" fill="#c084fc" opacity="0.6">Return</text>
+
+                    <!-- Volatile Matters output from Reactor (downward) -->
+                    <line x1="420" y1="395" x2="420" y2="470" stroke="#94a3b8" stroke-width="1.5"
+                        marker-end="url(#arrowBlack)" />
+                    <text x="420" y="460" text-anchor="middle" class="svg-label-xs" fill="#94a3b8">Volatile
+                        Matters</text>
+                    <text x="420" y="474" text-anchor="middle" class="svg-label-xs" fill="#94a3b8">and Feedstock
+                        Waste</text>
+
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!--  SECTION: BIOMASS FEEDSTOCK (TOP-LEFT)        -->
+                    <!-- ══════════════════════════════════════════════ -->
+
+                    <!-- Biomass Feedstock label -->
+                    <text x="45" y="115" class="svg-label-med" fill="#94a3b8">Biomass</text>
+                    <text x="45" y="132" class="svg-label-med" fill="#94a3b8">Feedstock</text>
+                    <line x1="100" y1="140" x2="150" y2="140" stroke="#4ade80" stroke-width="2.5"
+                        marker-end="url(#arrowGreen)" />
+
+                    <!-- 6. BIOMASS FEEDSTOCK HOMOGENIZER -->
+                    <g class="component" data-component="homogenizer"
+                        data-tooltip="Biomass Feedstock Homogenizer — Separates biomass into moisture-rich and moisture-lean streams">
+                        <rect x="155" y="105" width="160" height="65" rx="8" fill="url(#homoGrad)" class="comp-body" />
+                        <text x="235" y="133" class="svg-label" fill="white">Biomass Feedstock</text>
+                        <text x="235" y="150" class="svg-label-xs" fill="#ddd6fe">Homogenizer</text>
+                    </g>
+
+                    <!-- Flow: Homogenizer → Moisture-lean Biomass → HTC Reactor (down) -->
+                    <polyline points="235,170 235,368 358,368" stroke="#4ade80" stroke-width="2" fill="none"
+                        marker-end="url(#arrowGreen)" />
+                    <text x="175" y="260" class="svg-label-xs" fill="#4ade80">Moisture-lean</text>
+                    <text x="175" y="274" class="svg-label-xs" fill="#4ade80">Biomass</text>
+                    <text x="175" y="288" class="svg-label-xs" fill="#4ade80">Feedstock</text>
+
+                    <!-- Flow: Homogenizer → Moisture-rich Biomass → AD (right along top) -->
+                    <polyline points="315,137 720,137 720,170" stroke="#22d3ee" stroke-width="2" fill="none"
+                        marker-end="url(#arrowCyan)" />
+                    <text x="520" y="128" text-anchor="middle" class="svg-label-xs" fill="#22d3ee">Moisture-rich Biomass
+                        Feedstock</text>
+
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!--  SECTION: AD (ANAEROBIC DIGESTION) (TOP-RIGHT) -->
+                    <!-- ══════════════════════════════════════════════ -->
+
+                    <!-- 7. AD (Anaerobic Digestion) -->
+                    <g class="component" data-component="ad"
+                        data-tooltip="Anaerobic Digestion (AD) — Decomposes moisture-rich biomass to produce biogas">
+                        <rect x="680" y="170" width="80" height="55" rx="8" fill="url(#adGrad)" class="comp-body" />
+                        <text x="720" y="197" class="svg-label" fill="white">AD</text>
+                        <text x="720" y="213" class="svg-label-xs" fill="#a5f3fc">Anaerobic</text>
+                    </g>
+
+                    <!-- Flow: AD → Enhanced Biogas Collector -->
+                    <line x1="720" y1="225" x2="720" y2="280" stroke="#4ade80" stroke-width="2"
+                        marker-end="url(#arrowGreen)" />
+
+                    <!-- 8. ENHANCED BIOGAS COLLECTOR -->
+                    <g class="component" data-component="collector"
+                        data-tooltip="Enhanced Biogas Collector — Collects and distributes biogas from AD process">
+                        <rect x="650" y="280" width="140" height="60" rx="8" fill="url(#collGrad)" class="comp-body" />
+                        <text x="720" y="306" class="svg-label" fill="white">Enhanced Biogas</text>
+                        <text x="720" y="322" class="svg-label-xs" fill="#99f6e4">Collector</text>
+                    </g>
+
+                    <!-- Flow: Biogas Collector → Combustion Chamber (down) -->
+                    <polyline points="720,340 720,420 630,420 630,488" stroke="#4ade80" stroke-width="2.5" fill="none"
+                        marker-end="url(#arrowGreen)" />
+                    <text x="745" y="405" class="svg-label-xs" fill="#4ade80">Biogas</text>
+                    <text x="745" y="419" class="svg-label-xs" fill="#4ade80">Fuel</text>
+
+                    <!-- Flow: Biogas Collector → Biogas Distribution (right) -->
+                    <line x1="790" y1="310" x2="920" y2="310" stroke="#4ade80" stroke-width="2"
+                        marker-end="url(#arrowGreen)" />
+                    <text x="960" y="300" class="svg-label-xs" fill="#4ade80">Biogas Distribution</text>
+                    <text x="960" y="314" class="svg-label-xs" fill="#4ade80">to Building</text>
+                    <text x="960" y="328" class="svg-label-xs" fill="#4ade80">Envelopes</text>
+
+                    <!-- ═══ LEGEND ═══ -->
+                    <g transform="translate(40, 760)">
+                        <line x1="0" y1="0" x2="25" y2="0" stroke="#4ade80" stroke-width="2.5" />
+                        <text x="30" y="4" class="svg-label-xs" fill="#94a3b8">Biomass / Biogas</text>
+                        <line x1="160" y1="0" x2="185" y2="0" stroke="#60a5fa" stroke-width="2.5" />
+                        <text x="190" y="4" class="svg-label-xs" fill="#94a3b8">Compressed Air</text>
+                        <line x1="310" y1="0" x2="335" y2="0" stroke="#fb923c" stroke-width="2.5" />
+                        <text x="340" y="4" class="svg-label-xs" fill="#94a3b8">Hot Gas</text>
+                        <line x1="410" y1="0" x2="435" y2="0" stroke="#c084fc" stroke-width="2.5" />
+                        <text x="440" y="4" class="svg-label-xs" fill="#94a3b8">Steam / Water</text>
+                        <line x1="550" y1="0" x2="575" y2="0" stroke="#64748b" stroke-width="2.5"
+                            stroke-dasharray="8,4" />
+                        <text x="580" y="4" class="svg-label-xs" fill="#94a3b8">Shaft</text>
+                        <circle cx="640" cy="0" r="4" fill="#38bdf8" />
+                        <text x="650" y="4" class="svg-label-xs" fill="#94a3b8">State Point</text>
+                    </g>
+
+                    <!-- Footer -->
+                    <text x="580" y="780" text-anchor="middle" class="svg-label-xs" fill="#475569">©2025 Energhx
+                        Research Group — Faculty of Engineering, University of Lagos</text>
+                </svg>
+            </div>
+        </section>
+
+        <!-- ── PARAMETERS PANEL ── -->
+        <section class="panel params-panel" id="params-panel">
+            <div class="panel-header">
+                <h2>Cycle Parameters</h2>
+                <span class="panel-tag">Inputs</span>
+            </div>
+
+            <div class="param-section">
+                <h3 class="param-section-title">🔥 Gas Power Cycle (Brayton)</h3>
+
+                <div class="param-group">
+                    <label for="T1">Ambient Temperature, T₁ (K)</label>
+                    <input type="number" id="T1" value="298" min="250" max="330" step="1">
+                </div>
+                <div class="param-group">
+                    <label for="P1">Ambient Pressure, P₁ (kPa)</label>
+                    <input type="number" id="P1" value="101.325" min="90" max="110" step="0.1">
+                </div>
+                <div class="param-group">
+                    <label for="rp">Compressor Pressure Ratio, r_p</label>
+                    <input type="number" id="rp" value="10" min="4" max="30" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label for="TIT">Turbine Inlet Temp, T₃ (K)</label>
+                    <input type="number" id="TIT" value="1400" min="900" max="1800" step="10">
+                </div>
+                <div class="param-group">
+                    <label for="eta_c">Compressor Isentropic Eff, η_c</label>
+                    <input type="number" id="eta_c" value="0.86" min="0.7" max="0.98" step="0.01">
+                </div>
+                <div class="param-group">
+                    <label for="eta_t">Turbine Isentropic Eff, η_t</label>
+                    <input type="number" id="eta_t" value="0.89" min="0.7" max="0.98" step="0.01">
+                </div>
+                <div class="param-group">
+                    <label for="LHV">Biogas LHV (kJ/kg)</label>
+                    <input type="number" id="LHV" value="20000" min="10000" max="50000" step="500">
+                </div>
+                <div class="param-group">
+                    <label for="m_air">Air Mass Flow Rate (kg/s)</label>
+                    <input type="number" id="m_air" value="50" min="10" max="200" step="5">
+                </div>
+            </div>
+
+            <div class="param-section">
+                <h3 class="param-section-title">💨 HTC Steam Cycle (Rankine)</h3>
+
+                <div class="param-group">
+                    <label for="P_boiler">Boiler Pressure (MPa)</label>
+                    <input type="number" id="P_boiler" value="4.0" min="0.5" max="15.0" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label for="T_steam">Steam Temperature (K)</label>
+                    <input type="number" id="T_steam" value="673" min="450" max="850" step="10">
+                </div>
+                <div class="param-group">
+                    <label for="P_cond">Condenser Pressure (kPa)</label>
+                    <input type="number" id="P_cond" value="10" min="5" max="50" step="1">
+                </div>
+                <div class="param-group">
+                    <label for="eta_st">Steam Turbine Eff, η_st</label>
+                    <input type="number" id="eta_st" value="0.85" min="0.7" max="0.98" step="0.01">
+                </div>
+                <div class="param-group">
+                    <label for="eta_fp">Feed Pump Eff, η_fp</label>
+                    <input type="number" id="eta_fp" value="0.80" min="0.6" max="0.98" step="0.01">
+                </div>
+            </div>
+
+            <div class="param-section">
+                <h3 class="param-section-title">🌿 Biomass / AD Parameters</h3>
+
+                <div class="param-group">
+                    <label for="m_biomass">Biomass Feed Rate (kg/s)</label>
+                    <input type="number" id="m_biomass" value="5" min="1" max="50" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label for="moisture_split">Moisture-Rich Fraction (0–1)</label>
+                    <input type="number" id="moisture_split" value="0.6" min="0.3" max="0.9" step="0.05">
+                </div>
+                <div class="param-group">
+                    <label for="ad_yield">AD Biogas Yield (m³/kg biomass)</label>
+                    <input type="number" id="ad_yield" value="0.4" min="0.1" max="1.0" step="0.05">
+                </div>
+                <div class="param-group">
+                    <label for="htc_temp">HTC Reactor Temp (K)</label>
+                    <input type="number" id="htc_temp" value="523" min="453" max="573" step="5">
+                </div>
+            </div>
+
+            <button class="analyse-btn" id="analyse-btn">
+                <span class="btn-icon">📊</span>
+                <span class="btn-text">Analyse</span>
+                <span class="btn-glow"></span>
+            </button>
+        </section>
+
+    </main>
+
+    <!-- ═══════════════════ REPORT MODAL ═══════════════════ -->
+    <div class="modal-overlay" id="report-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Thermodynamic Analysis Report</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+
+            <div class="report-grid">
+                <!-- Performance Summary -->
+                <div class="report-card performance-card">
+                    <h3>⚡ Cycle Performance Summary</h3>
+                    <div class="perf-metrics" id="perf-metrics"></div>
+                </div>
+
+                <!-- H-S Chart -->
+                <div class="report-card chart-card">
+                    <h3>📈 H-S Diagram — HTC Steam Cycle</h3>
+                    <p class="chart-desc">Enthalpy vs Entropy for the HTC steam (Rankine) cycle processes</p>
+                    <div class="chart-container">
+                        <canvas id="hs-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- T-Ḣ Chart -->
+                <div class="report-card chart-card">
+                    <h3>📉 T-Ḣ Diagram — Gas Power Cycle</h3>
+                    <p class="chart-desc">Temperature vs Heat Rate for gas cycle processes (Compressor → Combustion →
+                        Turbine)</p>
+                    <div class="chart-container">
+                        <canvas id="th-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gas Cycle State Table -->
+                <div class="report-card table-card">
+                    <h3>🔥 Gas Cycle State Points</h3>
+                    <div class="table-wrapper">
+                        <table id="gas-table">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>Location</th>
+                                    <th>T (K)</th>
+                                    <th>P (kPa)</th>
+                                    <th>h (kJ/kg)</th>
+                                    <th>s (kJ/kg·K)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gas-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Steam Cycle State Table -->
+                <div class="report-card table-card">
+                    <h3>💧 HTC Steam Cycle State Points</h3>
+                    <div class="table-wrapper">
+                        <table id="steam-table">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>Location</th>
+                                    <th>T (K)</th>
+                                    <th>P (kPa)</th>
+                                    <th>h (kJ/kg)</th>
+                                    <th>s (kJ/kg·K)</th>
+                                    <th>x</th>
+                                </tr>
+                            </thead>
+                            <tbody id="steam-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- AD / Biomass Summary -->
+                <div class="report-card table-card">
+                    <h3>🌿 AD-HTC Mass &amp; Energy Balance</h3>
+                    <div class="perf-metrics" id="ad-metrics"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="svg-tooltip" id="svg-tooltip"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
