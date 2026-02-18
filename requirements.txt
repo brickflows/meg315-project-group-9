@@ -1,0 +1,6 @@
+# AD-HTC Fuel-Enhanced Power Gas Cycle — Python Dependencies
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.7
+CoolProp>=6.6
+iapws>=1.5
