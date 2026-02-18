@@ -1,14 +1,21 @@
 """
-AD-HTC Fuel-Enhanced Power Gas Cycle — Steam & Gas Property Tables
-===================================================================
-Uses CoolProp for accurate steam/water properties and polynomial
-correlations for ideal-gas (air) properties.
+AD-HTC Fuel-Enhanced Power Gas Cycle — Thermodynamic Property Tables
+=====================================================================
+Property sources:
+  • Gas  — Polynomial Cp(T) correlations for dry air (ideal gas)
+  • Steam — IAPWS-IF97 via `iapws` library (primary), CoolProp (fallback),
+            or built-in Antoine/correlation (final fallback)
+
+Additional modules:
+  • HRSG heat-recovery model
+  • Exergy / second-law analysis helpers
+  • Engineering validation checks
 """
 
 import numpy as np
 
 # ─────────────────────────────────────────────
-#  Try iapws first (fast import), then CoolProp
+#  Library detection: iapws (fast) → CoolProp
 # ─────────────────────────────────────────────
 try:
     from iapws import IAPWS97
@@ -16,7 +23,6 @@ try:
 except ImportError:
     HAS_IAPWS = False
 
-# CoolProp is very slow to import; only use if iapws unavailable
 HAS_COOLPROP = False
 if not HAS_IAPWS:
     try:
@@ -25,9 +31,13 @@ if not HAS_IAPWS:
     except ImportError:
         HAS_COOLPROP = False
 
+STEAM_SOURCE = "IAPWS-IF97 (iapws)" if HAS_IAPWS else (
+    "CoolProp" if HAS_COOLPROP else "Built-in correlations")
+
 
 # ═══════════════════════════════════════════════
 #  GAS TABLE API  (Dry air — ideal gas)
+#  Source: polynomial fit to JANAF data
 # ═══════════════════════════════════════════════
 
 class GasTable:
@@ -46,8 +56,33 @@ class GasTable:
                 + 0.1507 * t**4)
 
     @staticmethod
+    def cv(T):
+        """Specific heat cv [kJ/(kg·K)] at temperature T [K]."""
+        return GasTable.cp(T) - GasTable.R
+
+    @staticmethod
+    def gamma(T):
+        """Ratio of specific heats γ = cp/cv at temperature T [K]."""
+        c = GasTable.cp(T)
+        return c / (c - GasTable.R)
+
+    @staticmethod
+    def cp_avg(T1, T2):
+        """Average cp over [T1, T2] via numerical integration."""
+        temps = np.linspace(T1, T2, 100)
+        cp_vals = np.vectorize(GasTable.cp)(temps)
+        return float(np.mean(cp_vals))
+
+    @staticmethod
+    def gamma_avg(T1, T2):
+        """Average γ over [T1, T2]."""
+        temps = np.linspace(T1, T2, 100)
+        g_vals = np.vectorize(GasTable.gamma)(temps)
+        return float(np.mean(g_vals))
+
+    @staticmethod
     def h(T):
-        """Enthalpy h [kJ/kg] relative to 0 K via Simpson integration."""
+        """Enthalpy h [kJ/kg] relative to 0 K via trapezoidal integration."""
         n = 200
         T = max(T, 1.0)
         temps = np.linspace(1.0, T, n + 1)
@@ -58,7 +93,7 @@ class GasTable:
     def s(T, P):
         """
         Entropy s [kJ/(kg·K)] relative to T_ref=298.15 K, P_ref=101.325 kPa.
-        s(T,P) = ∫(cp/T)dT from T_ref to T  −  R·ln(P/P_ref)
+        s(T,P) = integral(cp/T)dT from T_ref to T  -  R·ln(P/P_ref)
         """
         T_ref, P_ref = 298.15, 101.325
         n = 200
@@ -80,14 +115,10 @@ class GasTable:
                 hi = mid
         return (lo + hi) / 2.0
 
-    @staticmethod
-    def gamma(T):
-        c = GasTable.cp(T)
-        return c / (c - GasTable.R)
-
 
 # ═══════════════════════════════════════════════
 #  STEAM TABLE API  (Water/Steam)
+#  Source: IAPWS-IF97 → CoolProp → correlations
 # ═══════════════════════════════════════════════
 
 class SteamTable:
@@ -103,8 +134,7 @@ class SteamTable:
     def T_sat(P_kPa):
         """Saturation temperature [K] at pressure P [kPa]."""
         if HAS_IAPWS:
-            st = IAPWS97(P=P_kPa / 1000, x=0)
-            return st.T
+            return IAPWS97(P=P_kPa / 1000, x=0).T
         elif HAS_COOLPROP:
             return CP.PropsSI('T', 'P', P_kPa * 1000, 'Q', 0, 'Water')
         else:
@@ -114,8 +144,7 @@ class SteamTable:
     def P_sat(T_K):
         """Saturation pressure [kPa] at temperature T [K]."""
         if HAS_IAPWS:
-            st = IAPWS97(T=T_K, x=0)
-            return st.P * 1000
+            return IAPWS97(T=T_K, x=0).P * 1000
         elif HAS_COOLPROP:
             return CP.PropsSI('P', 'T', T_K, 'Q', 0, 'Water') / 1000
         else:
@@ -178,7 +207,7 @@ class SteamTable:
 
     @staticmethod
     def vf(P_kPa):
-        """Saturated liquid specific volume [m³/kg]."""
+        """Saturated liquid specific volume [m^3/kg]."""
         if HAS_IAPWS:
             return IAPWS97(P=P_kPa / 1000, x=0).v
         elif HAS_COOLPROP:
@@ -271,3 +300,152 @@ class SteamTable:
         G = n2 * beta**2 + n5 * beta + n8
         D = 2 * G / (-F - np.sqrt(F**2 - 4 * E * G))
         return (n10 + D - np.sqrt((n10 + D)**2 - 4 * (n9 + n10 * D))) / 2
+
+
+# ═══════════════════════════════════════════════
+#  HRSG MODEL
+# ═══════════════════════════════════════════════
+
+def calculate_hrsg(T_exhaust, T_stack, m_gas, cp_avg_gas, eta_hrsg,
+                   pinch_dT, q_boiler_per_kg):
+    """
+    Heat Recovery Steam Generator model.
+
+    Parameters
+    ----------
+    T_exhaust : float  — Gas turbine exhaust temperature [K]
+    T_stack   : float  — Stack / exit temperature [K]
+    m_gas     : float  — Gas mass flow rate [kg/s]
+    cp_avg_gas: float  — Average Cp of exhaust gas [kJ/(kg·K)]
+    eta_hrsg  : float  — HRSG effectiveness (0-1)
+    pinch_dT  : float  — Minimum pinch temperature difference [K]
+    q_boiler_per_kg : float — Steam cycle heat input per unit steam [kJ/kg]
+
+    Returns
+    -------
+    dict with Q_available, Q_recovered, m_steam, T_stack_actual, pinch_ok
+    """
+    Q_available = m_gas * cp_avg_gas * (T_exhaust - T_stack)           # kW
+    Q_recovered = eta_hrsg * Q_available                                # kW
+    m_steam = Q_recovered / q_boiler_per_kg if q_boiler_per_kg > 0 else 0  # kg/s
+    T_stack_actual = T_exhaust - Q_recovered / (m_gas * cp_avg_gas) if (m_gas * cp_avg_gas) > 0 else T_stack
+    pinch_ok = (T_stack_actual - SteamTable.T_sat(100)) >= pinch_dT  # simplified check
+
+    return {
+        'Q_available': Q_available,
+        'Q_recovered': Q_recovered,
+        'm_steam': m_steam,
+        'T_stack_actual': T_stack_actual,
+        'pinch_ok': pinch_ok,
+    }
+
+
+# ═══════════════════════════════════════════════
+#  EXERGY / SECOND-LAW ANALYSIS
+# ═══════════════════════════════════════════════
+
+def exergy_flow_gas(h, s, h0, s0, T0):
+    """Specific flow exergy for gas [kJ/kg].  e = (h-h0) - T0*(s-s0)"""
+    return (h - h0) - T0 * (s - s0)
+
+
+def exergy_destruction_component(m, s_out, s_in, Q=0, T_boundary=None, T0=298.15):
+    """
+    Exergy destruction for a steady-state component [kW].
+    I_dot = T0 * S_gen
+    S_gen = m*(s_out - s_in) - Q/T_boundary  (for heat exchange)
+    """
+    S_gen = m * (s_out - s_in)
+    if Q != 0 and T_boundary is not None and T_boundary > 0:
+        S_gen -= Q / T_boundary
+    return T0 * max(S_gen, 0)  # can't be negative physically
+
+
+def second_law_efficiency(W_net, E_fuel):
+    """Second-law (exergetic) efficiency."""
+    return (W_net / E_fuel * 100) if E_fuel > 0 else 0
+
+
+def fuel_exergy(m_fuel, LHV, phi=1.04):
+    """
+    Chemical exergy of fuel [kW].
+    phi ~ 1.04 for methane/biogas (ratio of exergy to LHV).
+    """
+    return m_fuel * LHV * phi
+
+
+# ═══════════════════════════════════════════════
+#  ENGINEERING VALIDATION
+# ═══════════════════════════════════════════════
+
+def validate_inputs(params):
+    """
+    Return list of warning strings for problematic input values.
+    Each item is (severity, message) where severity is 'warning' or 'danger'.
+    """
+    warnings = []
+
+    TIT = params.get('TIT', 0)
+    if TIT > 1600:
+        warnings.append(('danger',
+            f'TIT = {TIT:.0f} K exceeds typical turbine blade limit (~1600 K). '
+            'Risk of blade failure without advanced cooling.'))
+    elif TIT > 1500:
+        warnings.append(('warning',
+            f'TIT = {TIT:.0f} K is near upper limit. '
+            'Requires advanced blade cooling technology.'))
+
+    T_steam = params.get('T_steam', 0)
+    if T_steam > 873:
+        warnings.append(('danger',
+            f'Steam temperature {T_steam:.0f} K exceeds typical material limit (~873 K / 600 C).'))
+
+    P_cond = params.get('P_cond', 0)
+    if P_cond < 3:
+        warnings.append(('warning',
+            f'Condenser pressure {P_cond:.1f} kPa is very low. '
+            'Requires deep vacuum — verify feasibility.'))
+
+    rp = params.get('rp', 0)
+    if rp < 4:
+        warnings.append(('warning',
+            f'Pressure ratio {rp:.1f} is unusually low for a gas turbine.'))
+    elif rp > 40:
+        warnings.append(('warning',
+            f'Pressure ratio {rp:.1f} is very high — multi-stage compression recommended.'))
+
+    eta_cc = params.get('eta_cc', 1.0)
+    if eta_cc > 1.0:
+        warnings.append(('danger', 'Combustion efficiency > 100% is non-physical.'))
+
+    return warnings
+
+
+def validate_results(gas, steam, ad, hrsg):
+    """Post-calculation validation warnings."""
+    warnings = []
+
+    if gas.get('w_net', 0) <= 0:
+        warnings.append(('danger',
+            f"Negative net gas cycle work ({gas['w_net']:.1f} kJ/kg). "
+            'Compressor work exceeds turbine work.'))
+
+    if steam.get('w_net', 0) <= 0:
+        warnings.append(('danger',
+            f"Negative net steam cycle work ({steam['w_net']:.1f} kJ/kg)."))
+
+    m_biogas = ad.get('m_biogas', 0)
+    m_fuel_req = gas.get('m_fuel', 0)
+    if m_fuel_req > 0 and m_biogas < m_fuel_req:
+        deficit = (1 - m_biogas / m_fuel_req) * 100
+        warnings.append(('warning',
+            f'Biogas supply ({m_biogas:.2f} kg/s) is insufficient for fuel demand '
+            f'({m_fuel_req:.2f} kg/s). Deficit: {deficit:.0f}%.'))
+
+    if not hrsg.get('pinch_ok', True):
+        warnings.append(('warning',
+            'HRSG pinch point temperature difference may be violated. '
+            'Increase stack temperature or reduce HRSG effectiveness.'))
+
+    return warnings
+
