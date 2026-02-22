@@ -1,5 +1,5 @@
 # AD-HTC Fuel-Enhanced Power Gas Cycle Analyser
-### MEG 315 — Group 9 | Energhx Research Group, University of Lagos
+### MEG 315 — Assignment 7 | Energhx Research Group, University of Lagos
 
 > An interactive thermodynamic simulation of a combined **Anaerobic Digestion (AD)** + **Hydrothermal Carbonization (HTC)** fuel-enhanced gas power cycle — with a coupled Rankine steam cycle and real-gas property models.
 
@@ -9,8 +9,8 @@
 
 | | Link |
 |---|---|
-| 🌐 **Live Web App** | [https://meg315-project-group-9.vercel.app](https://meg315-project-group-9.vercel.app) |
-| 📦 **GitHub Repository** | [https://github.com/brickflows/meg315-project-group-9](https://github.com/brickflows/meg315-project-group-9) |
+| 🌐 **Live Web App** | [https://meg315-assignment7.vercel.app](https://meg315-assignment7.vercel.app) |
+| 📦 **GitHub Repository** | [https://github.com/brickflows/meg315-assignment7](https://github.com/brickflows/meg315-assignment7) |
 
 ---
 
@@ -18,9 +18,9 @@
 
 The interactive animated system schematic — showing all energy and mass flows across the AD-HTC combined cycle:
 
-![AD-HTC Cycle Schematic](https://raw.githubusercontent.com/brickflows/meg315-project-group-9/main/preview.png)
+![AD-HTC Cycle Schematic](https://raw.githubusercontent.com/brickflows/meg315-assignment7/main/preview.png)
 
-> **Live version**: Open [`index.html`](index.html) in your browser to see the fully animated schematic with flowing particle animations, spinning generator, and pulsing state-point indicators.
+> **Live version**: Open [`index.html`](index.html) in your browser to see the fully animated schematic with flowing particle animations, spinning generator symbol, pulsing state-point indicators, and an animated background grid.
 
 ---
 
@@ -34,7 +34,6 @@ The interactive animated system schematic — showing all energy and mass flows 
 - [Installation & Setup](#installation--setup)
 - [Usage](#usage)
 - [Validation](#validation)
-- [Team](#team)
 
 ---
 
@@ -84,11 +83,12 @@ Biomass         Biomass
      ▼               ▼         ▼
   Rankine     Combustion   Biogas to
   Cycle        Chamber     Buildings
-     │               │
-     └───────────────┘
-              │
-              ▼
-         Net Power Output
+                   │
+        ┌──────────┴──────────┐
+        ▼                     ▼
+   Compressor ◄── Shaft ──► Turbine
+        ▲                     │
+        │ Air            Exhaust + Generator
 ```
 
 ---
@@ -96,39 +96,40 @@ Biomass         Biomass
 ## Features
 
 ### 🌐 Web Application (`index.html`)
-- **Interactive animated schematic** — live particle flow animations on every mass/energy stream
-- **Correct turbomachinery symbols** — trapezoid Compressor (blue) and Turbine (red) shapes
-- **Spinning generator** symbol at turbine exit
-- **Pulsing state-point indicators** (①②③④⑤)
-- **Real-time thermodynamic calculations** on parameter input
-- **H-s diagram** — Rankine steam cycle (with saturation dome)
-- **T-h diagram** — Brayton gas cycle
-- **State-point tables** — full thermodynamic properties at each state
-- **AD-HTC mass & energy balance** — biogas supply vs fuel demand
+- **Animated schematic** — glowing particle dots travel along every pipe path in real-time
+- **Engineering-accurate turbomachinery** — trapezoid Compressor (blue) and Turbine (red)
+- **Spinning GEN symbol** at turbine exit (generator output)
+- **Pulsing state-point indicators** ①②③④⑤ at each thermodynamic state
+- **Animated background grid** for a premium visual feel
+- **Real-time Brayton cycle** calculations from input parameters
+- **Real-time Rankine cycle** calculations with saturation dome on H-s chart
+- **State-point tables** — T, P, h, s, x at every state
+- **AD-HTC mass & energy balance** — biogas production vs combustor fuel demand
 
 ### 🖥️ Desktop Application (`app.py`)
-- Full **Tkinter GUI** with scrollable parameter panel
-- **HRSG coupling** between gas and steam cycles
-- **Second-law (exergy) analysis** — irreversibility per component
-- **Engineering validation warnings** — flags physically unreasonable inputs
-- **Collapsible sections** for optional parameters
+- **Tkinter GUI** — dual-panel layout with scrollable parameter inputs and tabbed charts
+- **HRSG coupling** — gas turbine exhaust heats the steam cycle with pinch-point enforcement
+- **Exergy / Second-Law analysis** — irreversibility per component, `η_II`, `Ṡ_gen`
+- **Engineering validation** — warns on low back-work ratio, unrealistic efficiencies, etc.
+- **Collapsible advanced sections** — HRSG, Biomass/AD, optional parameters
 
 ---
 
 ## File Structure
 
 ```
-meg315-project-group-9/
+meg315-assignment7/
 │
-├── index.html              # Web application (main entry point)
-├── styles.css              # Dark-theme styling with glassmorphism
-├── script.js               # Thermodynamic engine & Chart.js rendering
+├── index.html              # Web application (open directly in browser)
+├── styles.css              # Dark-theme CSS, glassmorphism, animations
+├── script.js               # Thermodynamic engine + Chart.js visualisations
 │
-├── app.py                  # Python/Tkinter desktop GUI
-├── thermodynamics.py       # Core property models (GasTable, SteamTable, HRSG, Exergy)
-├── validate_benchmark.py   # Standalone benchmark validation script
+├── app.py                  # Python/Tkinter desktop GUI application
+├── thermodynamics.py       # Core models: GasTable, SteamTable, HRSG, Exergy
+├── validate_benchmark.py   # Benchmark validation script (standalone)
+├── test_thermo.py          # Unit tests for thermodynamic functions
 │
-├── requirements.txt        # Python dependencies
+├── requirements.txt        # Python package dependencies
 └── README.md               # This file
 ```
 
@@ -140,60 +141,79 @@ meg315-project-group-9/
 
 | Property | Method |
 |----------|--------|
-| `cp(T)` | 4th-order polynomial — valid 250–2000 K |
-| `h(T)` | Simpson integration of `cp(T)` |
-| `s(T,P)` | Simpson integration + ideal-gas pressure correction |
-| Isentropic T | Bisection solver on `s(T,P) = const` |
-| Work | Isentropic efficiency applied to ideal work |
+| `cp(T)` [kJ/kg·K] | 4th-order polynomial (Borgnakke & Sonntag) — valid 250–2000 K |
+| `h(T)` [kJ/kg] | Simpson rule integration of `cp(T)` from 0 K |
+| `s(T,P)` [kJ/kg·K] | Simpson integration + `−R·ln(P/P_ref)` term |
+| Isentropic temperature | Bisection solver on entropy equality |
+| Compressor/Turbine work | Isentropic efficiency `η` applied to ideal `Δh` |
+| Combustor | Turbine Inlet Temperature (TIT) constrained; optional combustion efficiency `η_cc` |
 
 ### Steam Cycle (Rankine)
 
 | Property | Method |
 |----------|--------|
-| `T_sat(P)` | IAPWS-IF97 approximation |
+| `T_sat(P)` | IAPWS-IF97 4th-degree approximation |
 | `hf`, `hg`, `hfg` | Correlation fits vs saturation pressure |
-| Superheated `h`, `s` | Linear `cp` correction above saturation |
-| Quality `x` | Two-phase interpolation on entropy |
+| Superheated `h(P,T)` | Linear `cp_steam` correction above saturation |
+| Superheated `s(P,T)` | Log-law correction above saturation |
+| Quality `x` | Two-phase entropy interpolation |
+| Pump work | `w_p = v_f × ΔP / η_fp` |
 
 ### HRSG Coupling
-- Pinch-point constraint enforced (`ΔT_pinch ≥ 15 K`)
-- Steam mass flow from: `Q_recovered = ṁ_steam × Δh_boiler`
+
+- Gas turbine exhaust `→` HRSG `→` boiler feedwater preheating
+- Pinch-point minimum `ΔT = 15 K` enforced
+- Steam mass flow: `ṁ_steam = Q_recovered / Δh_boiler`
 
 ### Second Law (Exergy)
-- Flow exergy: `e = (h − h₀) − T₀(s − s₀)`
-- Irreversibility: `I = T₀ × Ṡ_gen`
-- Second-law efficiency: `η_II = Ẇ_net / Ė_fuel`
 
-### AD-HTC Balance
+- Flow exergy: `ė = (h − h₀) − T₀(s − s₀)` [kJ/kg]
+- Component irreversibility: `İ = T₀ · ΔṠ_gen` [kW]
+- Overall second-law efficiency: `η_II = Ẇ_net / Ė_fuel`
+- Entropy generation rate: `Ṡ_gen = İ_total / T₀` [kW/K]
 
-| Parameter | Model |
-|-----------|-------|
-| Biogas production | `V̇ = ṁ_rich × AD_yield` |
-| Biogas energy | `Ė = ṁ_biogas × LHV` |
-| HTC thermal output | `Q̇ ≈ ṁ_lean × 1.5 × (T_HTC − 298)` kJ/s |
-| Renewable fraction | `min(Ė_biogas / Ė_demand, 100%)` |
+### AD-HTC Biomass Balance
+
+| Parameter | Expression |
+|-----------|-----------|
+| Biogas volumetric flow | `V̇ = ṁ_rich × y_AD` m³/s |
+| Biogas mass flow | `ṁ_biogas = V̇ × ρ_biogas` (≈ 1.15 kg/m³) |
+| Biogas energy available | `Ė_biogas = ṁ_biogas × LHV` kW |
+| Combust fuel demand | `ṁ_fuel = (q_in × ṁ_air) / LHV` kg/s |
+| Renewable fraction | `min(Ė_biogas / Ė_demand, 100%)` % |
+| HTC thermal output | `Q̇_HTC ≈ ṁ_lean × 1.5 × (T_HTC − 298)` kJ/s |
 
 ---
 
 ## Installation & Setup
 
-### Web App (No install needed)
+### Web App
+
+No installation needed:
 
 ```bash
-# Just open in browser
+# Windows
 start index.html
+
+# macOS/Linux
+open index.html
 ```
 
 ### Python Desktop App
 
 ```bash
-git clone https://github.com/brickflows/meg315-project-group-9.git
-cd meg315-project-group-9
+# Clone
+git clone https://github.com/brickflows/meg315-assignment7.git
+cd meg315-assignment7
+
+# Install
 pip install -r requirements.txt
+
+# Run
 python app.py
 ```
 
-### Validation
+### Run Validation
 
 ```bash
 python validate_benchmark.py
@@ -203,17 +223,25 @@ python validate_benchmark.py
 
 ## Usage
 
+### Web App Inputs
+
+| Section | Parameters |
+|---------|-----------|
+| **Gas Cycle (Brayton)** | T₁, P₁, rp, TIT, η_c, η_t, LHV, ṁ_air |
+| **Steam Cycle (Rankine)** | P_boiler, T_steam, P_cond, η_st, η_fp |
+| **Biomass / AD** | ṁ_biomass, moisture split, AD yield, T_HTC |
+
 ### Default Design Point
 
 | Parameter | Value |
 |-----------|-------|
 | Ambient Temp T₁ | 298 K |
-| Pressure Ratio | 10 |
+| Pressure Ratio rp | 10 |
 | Turbine Inlet Temp | 1400 K |
-| Compressor Efficiency | 86% |
-| Turbine Efficiency | 89% |
+| Compressor Eff. η_c | 0.86 |
+| Turbine Eff. η_t | 0.89 |
 | Boiler Pressure | 4.0 MPa |
-| Steam Temperature | 673 K |
+| Steam Temp | 673 K |
 | Condenser Pressure | 10 kPa |
 | Biomass Feed | 5 kg/s |
 | Moisture-rich Fraction | 60% |
@@ -223,22 +251,16 @@ python validate_benchmark.py
 
 ## Validation
 
-```bash
-python validate_benchmark.py
-```
+The `validate_benchmark.py` script runs a full cycle against a published benchmark specification and reports:
 
-Checks solver accuracy against reference values for state-point temperatures, enthalpies, specific work, and thermal efficiency. Errors are printed as absolute and percentage deviations.
+- State-point temperatures (K) — States 1–5
+- State-point enthalpies (kJ/kg)
+- Net specific work `w_net` (kJ/kg)
+- Thermal efficiency `η_Brayton` (%)
+- Back-work ratio BWR (%)
 
----
-
-## Team
-
-**MEG 315 — Group 9**
-Faculty of Engineering, University of Lagos
-*Energhx Research Group*
+Results are printed as `[value | reference | Δ | Δ%]` for each quantity.
 
 ---
 
-## License
-
-Submitted as a course assignment for **MEG 315 (Engineering Thermodynamics)**, University of Lagos. All thermodynamic models and code are original work by Group 9.
+*© 2025 Energhx Research Group — Faculty of Engineering, University of Lagos | MEG 315 Assignment 7*
