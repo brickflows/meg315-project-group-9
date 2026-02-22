@@ -5,13 +5,30 @@
 
 ---
 
+## 🔗 Live Demo & Repository
+
+| | Link |
+|---|---|
+| 🌐 **Live Web App** | [https://meg315-project-group-9.vercel.app](https://meg315-project-group-9.vercel.app) |
+| 📦 **GitHub Repository** | [https://github.com/brickflows/meg315-project-group-9](https://github.com/brickflows/meg315-project-group-9) |
+
+---
+
+## 📸 Schematic Preview
+
+The interactive animated system schematic — showing all energy and mass flows across the AD-HTC combined cycle:
+
+![AD-HTC Cycle Schematic](https://raw.githubusercontent.com/brickflows/meg315-project-group-9/main/preview.png)
+
+> **Live version**: Open [`index.html`](index.html) in your browser to see the fully animated schematic with flowing particle animations, spinning generator, and pulsing state-point indicators.
+
+---
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
 - [System Architecture](#system-architecture)
 - [Features](#features)
-- [Live Demo (Web App)](#live-demo-web-app)
-- [Desktop App (Python/Tkinter)](#desktop-app-pythontkinter)
 - [File Structure](#file-structure)
 - [Thermodynamic Models](#thermodynamic-models)
 - [Installation & Setup](#installation--setup)
@@ -44,39 +61,34 @@ Biomass Feedstock
 ┌─────────────────────┐
 │ Biomass Feedstock   │
 │   Homogenizer       │
-└─────────┬───────────┘
-          │
-    ┌─────┴──────┐
-    │             │
-    ▼             ▼
+└──────────┬──────────┘
+           │
+     ┌─────┴──────┐
+     │             │
+     ▼             ▼
 Moisture-lean  Moisture-rich
 Biomass         Biomass
-    │               │
-    ▼               ▼
+     │               │
+     ▼               ▼
 ┌────────┐     ┌─────────┐
 │  HTC   │     │   AD    │
-│ Reactor│     │(Biogas) │
+│ Reactor│◄────│(Biogas) │
 └────┬───┘     └────┬────┘
-     │              │
-     ▼              ▼
-┌─────────┐   ┌──────────────────┐
-│  Boiler │   │ Enhanced Biogas  │
-│(Steam)  │   │   Collector      │
-└────┬────┘   └──────┬───────────┘
+     │  ▲           │
+     │  │           ▼
+     ▼  │     ┌──────────────────┐
+┌─────────┐   │ Enhanced Biogas  │
+│  Boiler │──►│   Collector      │
+└─────────┘   └──────┬───────────┘
      │               │         │
      ▼               ▼         ▼
   Rankine     Combustion   Biogas to
   Cycle        Chamber     Buildings
      │               │
-     ▼               ▼
-  Steam         Brayton Cycle
-  Turbine    (Compressor → Turbine)
-     │               │
      └───────────────┘
               │
               ▼
          Net Power Output
-         + Exhaust Gases
 ```
 
 ---
@@ -84,8 +96,8 @@ Biomass         Biomass
 ## Features
 
 ### 🌐 Web Application (`index.html`)
-- **Interactive animated schematic** — live particle flow animations showing every mass/energy stream
-- **Trapezoid compressor & turbine** shapes (engineering-accurate turbomachinery symbols)
+- **Interactive animated schematic** — live particle flow animations on every mass/energy stream
+- **Correct turbomachinery symbols** — trapezoid Compressor (blue) and Turbine (red) shapes
 - **Spinning generator** symbol at turbine exit
 - **Pulsing state-point indicators** (①②③④⑤)
 - **Real-time thermodynamic calculations** on parameter input
@@ -100,44 +112,6 @@ Biomass         Biomass
 - **Second-law (exergy) analysis** — irreversibility per component
 - **Engineering validation warnings** — flags physically unreasonable inputs
 - **Collapsible sections** for optional parameters
-- **Navigation toolbar** on all charts
-
----
-
-## Live Demo (Web App)
-
-To run the web app locally:
-
-1. Open `index.html` in any modern browser (Chrome, Edge, Firefox)
-2. No server or build step required — it's pure HTML/CSS/JavaScript
-
-**Or** view the deployed version on GitHub Pages *(if enabled on this repo)*.
-
----
-
-## Desktop App (Python/Tkinter)
-
-### Requirements
-
-```
-Python 3.10+
-matplotlib
-numpy
-pandas
-tkinter (built-in)
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-### Run
-
-```bash
-python app.py
-```
 
 ---
 
@@ -147,12 +121,12 @@ python app.py
 meg315-project-group-9/
 │
 ├── index.html              # Web application (main entry point)
-├── styles.css              # Web app styling (dark theme, glassmorphism)
-├── script.js               # Web app thermodynamic engine & chart rendering
+├── styles.css              # Dark-theme styling with glassmorphism
+├── script.js               # Thermodynamic engine & Chart.js rendering
 │
 ├── app.py                  # Python/Tkinter desktop GUI
-├── thermodynamics.py       # Core thermodynamic property models (GasTable, SteamTable, HRSG, Exergy)
-├── validate_benchmark.py   # Standalone validation against benchmark specifications
+├── thermodynamics.py       # Core property models (GasTable, SteamTable, HRSG, Exergy)
+├── validate_benchmark.py   # Standalone benchmark validation script
 │
 ├── requirements.txt        # Python dependencies
 └── README.md               # This file
@@ -166,85 +140,68 @@ meg315-project-group-9/
 
 | Property | Method |
 |----------|--------|
-| Specific heat `cp(T)` | 4th-order polynomial (Borgnakke & Sonntag) — valid 250–2000 K |
-| Enthalpy `h(T)` | Simpson integration of `cp(T)` |
-| Entropy `s(T,P)` | Simpson integration + ideal-gas pressure correction |
-| Isentropic temperature | Bisection solver on `s(T,P) = const` |
-| Compressor & Turbine | Isentropic efficiency applied to ideal work |
+| `cp(T)` | 4th-order polynomial — valid 250–2000 K |
+| `h(T)` | Simpson integration of `cp(T)` |
+| `s(T,P)` | Simpson integration + ideal-gas pressure correction |
+| Isentropic T | Bisection solver on `s(T,P) = const` |
+| Work | Isentropic efficiency applied to ideal work |
 
 ### Steam Cycle (Rankine)
 
 | Property | Method |
 |----------|--------|
-| Saturation temperature | IAPWS-IF97 approximation |
+| `T_sat(P)` | IAPWS-IF97 approximation |
 | `hf`, `hg`, `hfg` | Correlation fits vs saturation pressure |
-| Superheated steam `h`, `s` | Linear `cp` correction above saturation |
+| Superheated `h`, `s` | Linear `cp` correction above saturation |
 | Quality `x` | Two-phase interpolation on entropy |
 
 ### HRSG Coupling
-
-- Gas turbine exhaust recovers heat via a **Heat Recovery Steam Generator (HRSG)**
-- Pinch-point constraint enforced (`ΔT_pinch ≥ 15 K` default)
-- Steam mass flow computed from energy balance: `Q_recovered = m_steam × (h_boiler_exit − h_pump_exit)`
+- Pinch-point constraint enforced (`ΔT_pinch ≥ 15 K`)
+- Steam mass flow from: `Q_recovered = ṁ_steam × Δh_boiler`
 
 ### Second Law (Exergy)
-
-- Flow exergy per state: `e = (h − h₀) − T₀(s − s₀)`
-- Irreversibility per component: `I = T₀ × Ṡ_gen`
+- Flow exergy: `e = (h − h₀) − T₀(s − s₀)`
+- Irreversibility: `I = T₀ × Ṡ_gen`
 - Second-law efficiency: `η_II = Ẇ_net / Ė_fuel`
 
-### AD-HTC Biomass Balance
+### AD-HTC Balance
 
 | Parameter | Model |
 |-----------|-------|
-| Biogas production | `V̇_biogas = ṁ_rich × AD_yield` |
-| Biogas energy | `Ė_biogas = ṁ_biogas × LHV` |
-| HTC thermal output | `Q̇_HTC ≈ ṁ_lean × 1.5 × (T_HTC − 298)` kJ/s |
+| Biogas production | `V̇ = ṁ_rich × AD_yield` |
+| Biogas energy | `Ė = ṁ_biogas × LHV` |
+| HTC thermal output | `Q̇ ≈ ṁ_lean × 1.5 × (T_HTC − 298)` kJ/s |
 | Renewable fraction | `min(Ė_biogas / Ė_demand, 100%)` |
 
 ---
 
 ## Installation & Setup
 
-### Web App
+### Web App (No install needed)
 
-No installation needed. Open `index.html` directly in a browser.
+```bash
+# Just open in browser
+start index.html
+```
 
 ### Python Desktop App
 
 ```bash
-# Clone the repo
 git clone https://github.com/brickflows/meg315-project-group-9.git
 cd meg315-project-group-9
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Launch the GUI
 python app.py
 ```
 
-### Validation Script
+### Validation
 
 ```bash
 python validate_benchmark.py
 ```
 
-Runs a known benchmark case and prints errors relative to reference values for each state point and performance metric.
-
 ---
 
 ## Usage
-
-### Web App Parameter Guide
-
-| Section | Key Inputs |
-|---------|-----------|
-| **Gas Cycle** | Ambient T & P, Pressure Ratio `rp`, Turbine Inlet Temp `TIT`, Efficiencies |
-| **Steam Cycle** | Boiler pressure & temperature, Condenser pressure, Efficiencies |
-| **Biomass / AD** | Biomass feed rate, Moisture-rich fraction, AD biogas yield, HTC reactor temp |
-
-Click **Analyse** to compute all cycles, populate charts, and display state-point tables.
 
 ### Default Design Point
 
@@ -266,20 +223,11 @@ Click **Analyse** to compute all cycles, populate charts, and display state-poin
 
 ## Validation
 
-Run the benchmark validator to verify solver accuracy:
-
 ```bash
 python validate_benchmark.py
 ```
 
-**Expected outputs** are checked against:
-- Compressor exit temperature (State 2)
-- Turbine exhaust temperature (State 5)
-- Net specific work `w_net`
-- Thermal efficiency `η_Brayton`
-- Steam cycle state enthalpies
-
-Errors are reported as **absolute** and **percentage** deviations from reference values.
+Checks solver accuracy against reference values for state-point temperatures, enthalpies, specific work, and thermal efficiency. Errors are printed as absolute and percentage deviations.
 
 ---
 
@@ -287,11 +235,10 @@ Errors are reported as **absolute** and **percentage** deviations from reference
 
 **MEG 315 — Group 9**
 Faculty of Engineering, University of Lagos
-
-> *Energhx Research Group*
+*Energhx Research Group*
 
 ---
 
 ## License
 
-This project is submitted as a course assignment for **MEG 315 (Engineering Thermodynamics)** at the University of Lagos. All thermodynamic models and code are original work by Group 9.
+Submitted as a course assignment for **MEG 315 (Engineering Thermodynamics)**, University of Lagos. All thermodynamic models and code are original work by Group 9.
