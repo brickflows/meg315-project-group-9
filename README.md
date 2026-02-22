@@ -18,9 +18,9 @@
 
 The interactive animated system schematic — showing all energy and mass flows across the AD-HTC combined cycle:
 
-![AD-HTC Cycle Schematic](https://raw.githubusercontent.com/brickflows/meg315-assignment7/main/preview.png)
+![AD-HTC Cycle Schematic](https://raw.githubusercontent.com/brickflows/meg315-assignment7/main/ass7-schematic.png)
 
-> **Live version**: Open [`index.html`](index.html) in your browser to see the fully animated schematic with flowing particle animations, spinning generator symbol, pulsing state-point indicators, and an animated background grid.
+> **Live version**: Open [`index.html`](index.html) in your browser or visit the [Live Demo](https://meg315-assignment7.vercel.app) to see the fully animated schematic with flowing particle animations, spinning generator symbol, and pulsing state-point indicators.
 
 ---
 
