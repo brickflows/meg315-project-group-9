@@ -256,13 +256,9 @@
                     <polyline points="247,168 247,327 358,327" fill="none" stroke="#4ade80" stroke-width="2.5"
                         marker-end="url(#arrGreen)" class="flow-anim" />
 
-                    <!-- 4. Boiler ← pump (feedwater up, PURPLE) -->
-                    <polyline points="247,310 247,149 438,149" fill="none" stroke="#c084fc" stroke-width="2"
+                    <!-- 4. Pump → Boiler (feedwater up, PURPLE — routed right of Homogenizer) -->
+                    <polyline points="247,310 355,310 355,120 438,120" fill="none" stroke="#c084fc" stroke-width="2"
                         marker-end="url(#arrPurple)" class="flow-anim-slow" />
-
-                    <!-- 5. Boiler → right → toward AD area -->
-                    <polyline points="590,149 875,149 875,98" fill="none" stroke="#f43f5e" stroke-width="2"
-                        marker-end="url(#arrGray)" class="flow-anim-slow" />
 
                     <!-- 6. AD → down → Enhanced Biogas Collector (GREEN) -->
                     <polyline points="930,168 930,258 812,258" fill="none" stroke="#4ade80" stroke-width="2.5"
@@ -280,8 +276,8 @@
                     <polyline points="435,368 435,415 475,415" fill="none" stroke="#94a3b8" stroke-width="1.8"
                         marker-end="url(#arrGray)" class="flow-anim-slow" />
 
-                    <!-- 9b. Reactor → Boiler (UP — HTC heat generating steam, ORANGE) -->
-                    <polyline points="475,287 475,240 514,240 514,182" fill="none" stroke="#fb923c" stroke-width="2.2"
+                    <!-- 9b. Boiler → Reactor (DOWN — steam/heat from Boiler into Reactor, ORANGE) -->
+                    <polyline points="514,182 514,240 475,240 475,287" fill="none" stroke="#fb923c" stroke-width="2.2"
                         marker-end="url(#arrOrange)" class="flow-anim" />
 
                     <!-- 9c. Reactor → Enhanced Biogas Collector (RIGHT — HTC volatile products, TEAL) -->
@@ -499,9 +495,9 @@
                         <animateMotion dur="2s" repeatCount="indefinite" path="M247,168 L247,327 L358,327" />
                     </circle>
 
-                    <!-- Particle: Pump → Boiler (feedwater) -->
+                    <!-- Particle: Pump → Boiler (feedwater, rerouted right of Homogenizer) -->
                     <circle r="4" fill="#c084fc" opacity="0.85">
-                        <animateMotion dur="2.5s" repeatCount="indefinite" path="M247,310 L247,149 L438,149" />
+                        <animateMotion dur="2.5s" repeatCount="indefinite" path="M247,310 L355,310 L355,120 L438,120" />
                     </circle>
 
                     <!-- Particle: AD → Biogas Collector -->
@@ -544,9 +540,9 @@
                         <animateMotion dur="1.5s" repeatCount="indefinite" path="M950,700 L950,770" />
                     </circle>
 
-                    <!-- Particle: Reactor → Boiler (HTC heat UP, orange) -->
+                    <!-- Particle: Boiler → Reactor (steam/heat DOWN, orange) -->
                     <circle r="4" fill="#fb923c" opacity="0.9">
-                        <animateMotion dur="2s" repeatCount="indefinite" path="M475,287 L475,240 L514,240 L514,182" />
+                        <animateMotion dur="2s" repeatCount="indefinite" path="M514,182 L514,240 L475,240 L475,287" />
                     </circle>
 
                     <!-- Particle: Reactor → Enhanced Biogas Collector (HTC products RIGHT, teal) -->
