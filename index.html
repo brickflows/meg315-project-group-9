@@ -280,6 +280,14 @@
                     <polyline points="435,368 435,415 475,415" fill="none" stroke="#94a3b8" stroke-width="1.8"
                         marker-end="url(#arrGray)" class="flow-anim-slow" />
 
+                    <!-- 9b. Reactor → Boiler (UP — HTC heat generating steam, ORANGE) -->
+                    <polyline points="475,287 475,240 514,240 514,182" fill="none" stroke="#fb923c" stroke-width="2.2"
+                        marker-end="url(#arrOrange)" class="flow-anim" />
+
+                    <!-- 9c. Reactor → Enhanced Biogas Collector (RIGHT — HTC volatile products, TEAL) -->
+                    <polyline points="513,318 595,318 595,270 640,270" fill="none" stroke="#2dd4bf" stroke-width="2.2"
+                        marker-end="url(#arrTeal)" class="flow-anim" />
+
                     <!-- 10. Combustion Chamber → left-down → Compressor exit/hot gas (ORANGE) -->
                     <!-- Air from compressor → up to combustion chamber -->
                     <polyline points="390,640 440,640 440,457 478,457" fill="none" stroke="#60a5fa" stroke-width="2.5"
@@ -534,6 +542,16 @@
                     <!-- Particle: Turbine exhaust out (down) -->
                     <circle r="4" fill="#94a3b8" opacity="0.7">
                         <animateMotion dur="1.5s" repeatCount="indefinite" path="M950,700 L950,770" />
+                    </circle>
+
+                    <!-- Particle: Reactor → Boiler (HTC heat UP, orange) -->
+                    <circle r="4" fill="#fb923c" opacity="0.9">
+                        <animateMotion dur="2s" repeatCount="indefinite" path="M475,287 L475,240 L514,240 L514,182" />
+                    </circle>
+
+                    <!-- Particle: Reactor → Enhanced Biogas Collector (HTC products RIGHT, teal) -->
+                    <circle r="4" fill="#2dd4bf" opacity="0.9">
+                        <animateMotion dur="2s" repeatCount="indefinite" path="M513,318 L595,318 L595,270 L640,270" />
                     </circle>
 
                     <!-- ══ LEGEND ══ -->
